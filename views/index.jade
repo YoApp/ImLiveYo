@@ -1,0 +1,13 @@
+extends layout
+
+block content
+  include navbar
+  .container
+    .row
+      .col-md-8.col-md-offset-2
+        h1.
+          Welcome to ImLiveYo!
+        p.
+          To get started, click the button below and connect your Twitch account.
+        a.btn.btn-primary.btn-lg.btn-block(href="https://api.twitch.tv/kraken/oauth2/authorize?response_type=code&client_id=nj4s2qsn6eu6v3xxaia0pgocd97mtz7&redirect_uri=http://localhost:3000/auth/&scope=user_read") Connect with Twitch 
+          i.fa.fa-twitch
