@@ -1,0 +1,78 @@
+extends layout
+
+mixin settingsInput(name, label, type)
+  .form-group
+    label(for="settings_#{name}") #{label}
+    input.form-control(id="settings_#{name}", name=name, type="text")&attributes(attributes)
+
+mixin settingsBooleanRadio(name, label, isOn)
+  .form-group
+    label #{label}
+    br
+    .btn-group(data-toggle="buttons")
+      label.btn.btn-default(class={active: isOn})
+        input(type="radio", name=name, autocomplete="off", checked=isOn, value="1")
+        | On
+      label.btn.btn-default(class={active: !isOn})
+        input(type="radio", name=name, autocomplete="off", checked=!isOn, value="0")
+        | Off
+
+
+block content
+  include navbar
+  .container
+    .row
+      .col-md-12
+        h1.page-header.text-center #{twitchName}
+      .col-md-4
+        h2 Settings
+        form#settingsForm
+          +settingsInput("yoName", "Yo username")(value="#{yoName}", style={"text-transform": "uppercase"})
+          +settingsBooleanRadio("isActive", "Enable Yo notifications", isActive)
+          span#settingsSubmit.btn.btn-primary(data-loading-text="Saving...", data-success-text="Saved!", data-error-text="Error!") Save
+          |  
+          a.btn.btn-warning(href="/auth/logout") Logout
+      .col-md-8
+        h2 Live right now
+        if whosLive.length
+          ul
+            each stream in whosLive
+              li
+                a(href=stream.channel.url) 
+                  strong #{stream.channel.display_name}
+                  |  playing #{stream.game}
+        else
+          p.lead No one's live right now
+
+
+block js
+  script.
+    $("#settingsSubmit").click(function(){
+      var btn = $(this);
+      btn.text("Save");
+      btn.button('loading');
+
+      $.ajax('', {
+        data: $('#settingsForm').serialize(),
+        method: 'POST',
+        error: function(xhr, status, error) {
+          btn.button('error');
+          alert("Error: " + error);
+        },
+        success: function(data, status, xhr) {
+          if (data == "ok") {
+            btn.button('success');
+          } else {
+            btn.button('error');
+            alert("Error: " + data);
+          }
+        }
+
+      });
+    })
+
+    $("#settings_yoName").change(function(){
+      $(this).val($(this).val().toUpperCase());
+    })
+
+
