@@ -16,7 +16,7 @@ var db = new sqlite3.Database('main.db');
 
 db.serialize(function() {
   db.run("CREATE TABLE if not exists users (twitchName VARCHAR(31) NOT NULL, twitchAccessToken VARCHAR(255) NOT NULL, yoName VARCHAR(63), isActive BIT(1) NOT NULL, lastModified INT NOT NULL, PRIMARY KEY (twitchName))");
-  db.run("CREATE TABLE if not exists alerts (streamId VARCHAR(255) NOT NULL, twitchName VARCHAR(31) NOT NULL)");
+  db.run("CREATE TABLE if not exists alerts (streamId BIGINT NOT NULL, twitchName VARCHAR(31) NOT NULL)");
 }); // Yo usernames are limited to 60 characters it seems
 
 var routes = require('./routes/index');
@@ -82,7 +82,7 @@ app.use(function(err, req, res, next) {
 
 
 var followWorker = function(){
-  console.log("RUNNING FOLLOW JOB")
+  console.log("Running follow job...");
   var usersStmt = db.prepare("SELECT * FROM users WHERE isActive=?");
   usersStmt.each(1, function(err, userRow) {
 
@@ -91,22 +91,15 @@ var followWorker = function(){
 
       for (var j = 0; j < streams.length; j++) {
 
+        var stream = streams[j];
+
         //TODO this is NOT how you deepcopy
-        var stream = JSON.parse(JSON.stringify(streams[j]));
-        console.log(stream.channel.display_name);
-
-        var getStmt = db.prepare("SELECT * FROM alerts WHERE streamId=? AND twitchName=?");
-        getStmt.get(stream._id, userRow.twitchName, function(err, alertRow) {
-          if (typeof alertRow === 'undefined') {
-            //justyo.yo(userRow.yoName, function(yoid){}, stream.channel.url);
-
-
-            var insertStmt = db.prepare("INSERT INTO alerts (streamId, twitchName) VALUES (?, ?)");
-            insertStmt.run(stream._id, userRow.twitchName);
-            insertStmt.finalize();
-          }
-        });
-        getStmt.finalize();
+        handleAlert(
+          JSON.parse(JSON.stringify(stream._id)), 
+          JSON.parse(JSON.stringify(stream.name)), 
+          JSON.parse(JSON.stringify(userRow.twitchName)), 
+          JSON.parse(JSON.stringify(userRow.yoName))
+        );
 
       }
     });
@@ -115,9 +108,27 @@ var followWorker = function(){
 
 };
 
-followWorker();
+function handleAlert(streamId, streamName, userTwitchName, userYoName) {
+  var getStmt = db.prepare("SELECT * FROM alerts WHERE streamId=? AND twitchName=?");
+  getStmt.get(streamId, userTwitchName, function(err, alertRow) {
+    if (typeof alertRow === 'undefined') {
 
-//setInterval(followWorker, 300000);
+      console.log("Yoing " + userTwitchName + " about " + streamName);
 
+      justyo.yo(userYoName, function(yoid){}, "http://www.twitch.tv/" + streamName);
+
+      var insertStmt = db.prepare("INSERT INTO alerts (streamId, twitchName) VALUES (?, ?)");
+      insertStmt.run(streamId, userTwitchName);
+      insertStmt.finalize();
+    }
+  });
+  getStmt.finalize();
+}
+
+//followWorker();
+
+setInterval(followWorker, 300000);
+
+console.log("Server running");
 
 module.exports = app;
