@@ -2,8 +2,8 @@ var config = {};
 
 config.twitch = {};
 config.justyo = {};
-config.web = {};
-config.sessions = {};
+//config.web = {};
+//config.sessions = {};
 
 config.twitch.redirectUri = process.env.TWITCH_REDIRECT_URI || "http://localhost:3000/auth/login/";
 config.twitch.clientId = process.env.TWITCH_CLIENT_ID || "nj4s2qsn6eu6v3xxaia0pgocd97mtz7";
@@ -14,8 +14,9 @@ config.twitch.apiRoot = process.env.TWITCH_API_ROOT || "https://api.twitch.tv/kr
 config.justyo.apiToken = process.env.JUSTYO_API_TOKEN || "secret";
 config.justyo.apiRoot = process.env.JUSTYO_API_ROOT || "http://api.justyo.co";
 
-config.web.port = process.env.WEB_PORT || 3000;
+//config.web.port = process.env.WEB_PORT || 3000;
 
-config.sessions.secret = process.env.SESSIONS_SECRET || "QWERTYUIOP1234567890";
+config.sessionSecret = process.env.SESSION_SECRET || "QWERTYUIOP1234567890";
+config.alertJobFrequency = process.env.ALERT_JOB_FREQUENCY || 60000;
 
 module.exports = config;

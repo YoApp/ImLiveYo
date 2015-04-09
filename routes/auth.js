@@ -50,16 +50,17 @@ router.get('/login', function(req, res, next) {
               sess.twitchName = username;
               sess.twitchAccessToken = accessToken;
 
-              res.send("it worked! welcome " + username);
+              res.redirect('/me');
+              //res.send("logged in!");
 
             } else {
-              res.send("something broke :/");
+              res.render('error', {message:"Something went wrong"});
             }
           }
         );
 
       } else {
-        res.send("something broke :/");
+              res.render('error', {message:"Something went wrong"});
       }
     }
   );
@@ -70,7 +71,8 @@ router.get('/logout', function(req, res, next) {
   var sess = req.session;
   delete sess.twitchName;
   delete sess.twitchAccessToken;
-  res.send("logged out!");
+  res.redirect('/');
+  //res.send("logged out!");
 
 });
 

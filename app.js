@@ -40,7 +40,7 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use(session({
-  secret: config.sessions.secret,
+  secret: config.sessionSecret,
   resave: false,
   saveUninitialized: true
 }));
@@ -81,8 +81,8 @@ app.use(function(err, req, res, next) {
 });
 
 
-var followWorker = function(){
-  console.log("Running follow job...");
+var alertWorker = function(){
+  console.log("Running alert job...");
   var usersStmt = db.prepare("SELECT * FROM users WHERE isActive=?");
   usersStmt.each(1, function(err, userRow) {
 
@@ -96,7 +96,7 @@ var followWorker = function(){
         //TODO this is NOT how you deepcopy
         handleAlert(
           JSON.parse(JSON.stringify(stream._id)), 
-          JSON.parse(JSON.stringify(stream.name)), 
+          JSON.parse(JSON.stringify(stream.channel.name)), 
           JSON.parse(JSON.stringify(userRow.twitchName)), 
           JSON.parse(JSON.stringify(userRow.yoName))
         );
@@ -125,10 +125,9 @@ function handleAlert(streamId, streamName, userTwitchName, userYoName) {
   getStmt.finalize();
 }
 
-//followWorker();
-
-setInterval(followWorker, 300000);
-
 console.log("Server running");
+
+alertWorker();
+setInterval(alertWorker, config.alertJobFrequency);
 
 module.exports = app;
